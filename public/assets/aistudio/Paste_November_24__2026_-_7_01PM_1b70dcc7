@@ -1,0 +1,676 @@
+```html
+<!-- ... existing code ... -->
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-in {
+      animation: fadeSlideIn 0.24s ease-out forwards;
+    }
+    @keyframes bannerSnappySwap {
+      0% {
+        opacity: 0.25;
+        transform: translateY(5px) scale(0.992);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .banner-snappy-swap {
+      animation: bannerSnappySwap 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+  </style>
+</head>
+<!-- ... existing code ... -->
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
+
+    <!-- ACTIVE VIDEO PLAYER VIEW (Sticky at top in watch mode) -->
+    <section id="playerSection" class="hidden sticky top-0 z-40 bg-[#0f0f0f]/98 backdrop-blur-md pb-3 pt-2 border-b border-zinc-800/80 space-y-2 animate-fade-in">
+      <!-- Top Player Controls Bar -->
+      <div class="flex items-center justify-between gap-2">
+        <button
+          id="backToFeedBtn"
+          type="button"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1d1d1d] hover:bg-[#2a2a2a] border border-zinc-700/80 text-xs sm:text-sm font-semibold text-white transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Back to Feed</span>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button
+            id="reopenBannerBtn"
+            type="button"
+            class="hidden inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-medium transition-colors"
+          >
+            <span>Restore Feed Ads</span>
+          </button>
+          <button
+            id="playerSaveBtn"
+            type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1d1d1d] hover:bg-[#2a2a2a] border border-zinc-700/80 text-xs sm:text-sm font-semibold transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            <span id="playerSaveText">Save</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 16:9 Responsive YouTube Embed Container -->
+      <div class="w-full rounded-2xl overflow-hidden bg-black border border-zinc-800 shadow-2xl">
+        <div class="relative w-full aspect-video max-h-[32vh] sm:max-h-[45vh] mx-auto bg-black">
+          <iframe
+            id="ytPlayerFrame"
+            class="w-full h-full"
+            src=""
+            title="Video Player"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        </div>
+
+        <!-- Compact Video Metadata Strip -->
+        <div class="px-3.5 py-2 bg-[#141414] border-t border-zinc-800/80 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span id="playingCategoryBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-600/20 text-red-400 border border-red-500/30">
+                Film
+              </span>
+              <span id="playingDurationBadge" class="text-[11px] text-zinc-400 font-medium"></span>
+            </div>
+            <h1 id="playingTitle" class="text-sm sm:text-base font-bold text-white mt-0.5 truncate">
+              Select a video to watch
+            </h1>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- YOUTUBE-STYLE STREAMING FEED SECTION -->
+    <section id="feedSection" class="space-y-4 pb-24 scroll-mt-24">
+      <div class="flex items-center justify-between gap-2 pt-1">
+        <div>
+          <h2 id="feedHeading" class="text-base sm:text-lg font-bold text-white tracking-tight">
+            Trending Feed
+          </h2>
+          <p id="feedSubheading" class="text-xs text-zinc-400">
+            Film • Drama • Stories — Banner ads appear beneath videos in the feed
+          </p>
+        </div>
+        <span id="resultCountBadge" class="text-xs font-medium text-zinc-400 bg-[#181818] px-2.5 py-1 rounded-lg border border-zinc-800">
+          0 videos
+        </span>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden rounded-2xl bg-[#161616] border border-zinc-800/90 p-8 sm:p-12 text-center space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-zinc-800/90 mx-auto flex items-center justify-center text-zinc-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+          </svg>
+        </div>
+        <h3 id="emptyStateTitle" class="text-base font-semibold text-white">No matching videos found</h3>
+        <p id="emptyStateDesc" class="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
+          Try a different search keyword or switch between All, Film, Drama, Stories, and Saved.
+        </p>
+        <button
+          id="resetFiltersBtn"
+          type="button"
+          class="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-black text-xs sm:text-sm font-semibold hover:bg-zinc-200 transition-colors"
+        >
+          Reset Filters
+        </button>
+      </div>
+
+      <!-- Dynamic Feed Container (Video grids + in-feed rotating banner slots beneath videos) -->
+      <div id="videoGrid" class="space-y-5 pb-12"></div>
+    </section>
+  </main>
+<!-- ... existing code ... -->
+  <!-- ADMIN PANEL SECTION (Hidden by default; unlocked via KINGADMIN or admin) -->
+  <section id="adminSection" class="hidden max-w-7xl w-full mx-auto px-3 sm:px-6 pb-24">
+<!-- ... existing code ... -->
+        // Rotating banner slots cycling across 30s and 60s intervals
+        const BANNER_SLOTS = [
+          {
+            id: 'slot-1',
+            intervalSec: 60,
+            tag: 'Banner Ad • 60s Cycle',
+            headline: 'New Films, Dramas & Daily Stories Added Regularly',
+            subtext: 'Scrolls naturally with the feed and rotates on a 60s/30s schedule.',
+            cta: 'Explore All',
+            action: 'openAll'
+          },
+          {
+            id: 'slot-2',
+            intervalSec: 30,
+            tag: 'Banner Ad • 30s Cycle',
+            headline: 'Save Your Favorite Episodes & Films for Later',
+            subtext: 'Tap Save on any video card to build your personal watchlist.',
+            cta: 'View Saved',
+            action: 'openSaved'
+          },
+          {
+            id: 'slot-3',
+            intervalSec: 60,
+            tag: 'Banner Ad • 60s Cycle',
+            headline: 'Film • Drama • Stories — Curated Streaming Feed',
+            subtext: 'Browse category filters above or close any banner slot with ×.',
+            cta: 'Browse Drama',
+            action: 'openDrama'
+          },
+          {
+            id: 'slot-4',
+            intervalSec: 30,
+            tag: 'Banner Ad • 30s Cycle',
+            headline: 'Fast Feed Updates • Watch Anytime',
+            subtext: 'Banner ads stay inside the feed beneath videos and move as you scroll.',
+            cta: 'Browse Stories',
+            action: 'openStories'
+          }
+        ];
+<!-- ... existing code ... -->
+      // Banner rotation state (cycles dynamically across 30s and 60s intervals)
+      let bannerTimerId = null;
+      let bannerSwapTimeoutId = null;
+
+      function getSlotInterval(index) {
+        const slot = BANNER_SLOTS[index % BANNER_SLOTS.length];
+        return slot && typeof slot.intervalSec === 'number' ? slot.intervalSec : 60;
+      }
+
+      const state = {
+        videos: [],
+        savedIds: [],
+        profileName: '',
+        activeCategory: 'All',
+        searchQuery: '',
+        activeVideoId: null,
+        bannerVisible: true,
+        bannerIndex: 0,
+        bannerSecondsLeft: getSlotInterval(0),
+        bannerActiveInterval: getSlotInterval(0),
+        closedBannerSlots: {}
+      };
+<!-- ... existing code ... -->
+        els.playerSaveBtn: document.getElementById('playerSaveBtn'),
+        els.playerSaveText: document.getElementById('playerSaveText'),
+        els.reopenBannerBtn: document.getElementById('reopenBannerBtn'),
+        els.resetFiltersBtn: document.getElementById('resetFiltersBtn'),
+        els.resultCountBadge: document.getElementById('resultCountBadge'),
+        els.savedCountPill: document.getElementById('savedCountPill'),
+        els.searchInput: document.getElementById('searchInput'),
+        els.toastBar: document.getElementById('toastBar'),
+        els.toastMessage: document.getElementById('toastMessage'),
+        els.videoCategoryInput: document.getElementById('videoCategoryInput'),
+        els.videoDurationInput: document.getElementById('videoDurationInput'),
+        els.videoGrid: document.getElementById('videoGrid'),
+        els.videoThumbInput: document.getElementById('videoThumbInput'),
+        els.videoTitleInput: document.getElementById('videoTitleInput'),
+        els.videoUrlOrIdInput: document.getElementById('videoUrlOrIdInput'),
+        els.ytPlayerFrame: document.getElementById('ytPlayerFrame')
+      };
+<!-- ... existing code ... -->
+      // =========================================================================
+      // FEED & CARD RENDERING (WITH IN-FEED ROTATING BANNER SLOTS BENEATH VIDEOS)
+      // =========================================================================
+      function buildVideoCardHtml(video) {
+        const saved = isSaved(video.id);
+        const category = normalizeCategoryName(video.category);
+        const thumbUrl = getThumbnailUrl(video);
+        const isPlaying = state.activeVideoId === video.id;
+
+        return `
+          <article
+            data-video-id="${escapeHtml(video.id)}"
+            class="video-card group cursor-pointer rounded-2xl bg-[#161616] hover:bg-[#1c1c1c] border ${
+              isPlaying ? 'border-red-500/70 ring-1 ring-red-500/40' : 'border-zinc-800/80 hover:border-zinc-700'
+            } overflow-hidden transition-all duration-200 flex flex-col"
+          >
+            <!-- 16:9 Thumbnail Container -->
+            <div class="relative aspect-video w-full bg-zinc-900 overflow-hidden">
+              <img
+                src="${escapeHtml(thumbUrl)}"
+                alt="${escapeHtml(video.title)}"
+                loading="lazy"
+                class="thumb-img w-full h-full object-cover"
+                onerror="this.onerror=null;this.src='https://placehold.co/640x360/18181b/f4f4f5?text=${encodeURIComponent(category)}';"
+              />
+              ${
+                video.duration
+                  ? `<span class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/85 text-[11px] font-semibold text-white tracking-wide">${escapeHtml(video.duration)}</span>`
+                  : ''
+              }
+              ${
+                isPlaying
+                  ? `<span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-red-600 text-[10px] font-bold uppercase tracking-wider text-white shadow">Playing</span>`
+                  : ''
+              }
+            </div>
+
+            <!-- Card Body: Title, Category & Save Action -->
+            <div class="p-3.5 flex-1 flex flex-col justify-between gap-3">
+              <h3 class="text-sm sm:text-[15px] font-semibold text-white leading-snug line-clamp-2 group-hover:text-red-400 transition-colors">
+                ${escapeHtml(video.title)}
+              </h3>
+
+              <div class="flex items-center justify-between gap-2 pt-1">
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-zinc-800/90 text-zinc-300">
+                  ${category}
+                </span>
+
+                <button
+                  type="button"
+                  data-save-id="${escapeHtml(video.id)}"
+                  class="save-card-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                    saved
+                      ? 'bg-red-600/20 text-red-400 border border-red-500/40 hover:bg-red-600/30'
+                      : 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700 border border-transparent'
+                  }"
+                  title="${saved ? 'Saved' : 'Save video'}"
+                >
+                  <svg class="w-3.5 h-3.5 ${saved ? 'fill-current' : ''}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                  <span>${saved ? 'Saved' : 'Save'}</span>
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function buildInFeedBannerSlotHtml(slotIndex, anchorVideoTitle) {
+        const currentSlot = BANNER_SLOTS[state.bannerIndex % BANNER_SLOTS.length];
+        const totalSec = Math.max(1, state.bannerActiveInterval || getSlotInterval(state.bannerIndex));
+        const pct = Math.max(0, Math.min(100, (state.bannerSecondsLeft / totalSec) * 100));
+
+        return `
+          <div
+            data-feed-banner-slot="${slotIndex}"
+            class="in-feed-banner-slot rounded-2xl bg-gradient-to-r from-[#1b1926] via-[#1c1b22] to-[#17212b] border border-amber-500/35 shadow-lg overflow-hidden"
+          >
+            <div class="flex items-center justify-between gap-2 px-3.5 py-2 bg-black/40 border-b border-white/10">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-black shrink-0">
+                  Banner Ad
+                </span>
+                <span class="feed-banner-tag text-[11px] font-semibold text-amber-300 truncate">
+                  ${escapeHtml(currentSlot.tag)}
+                </span>
+                <span class="text-[11px] text-zinc-300 font-medium shrink-0">
+                  • Next in <strong class="feed-banner-countdown text-amber-300">${state.bannerSecondsLeft}</strong>s
+                </span>
+              </div>
+
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  class="feed-cycle-banner-btn px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[11px] text-zinc-200 font-medium transition-colors"
+                  title="Switch banner ad now"
+                >
+                  Next Ad
+                </button>
+                <button
+                  type="button"
+                  data-close-slot="${slotIndex}"
+                  class="feed-close-banner-btn w-6 h-6 rounded-md bg-zinc-800/90 hover:bg-red-600 text-zinc-200 hover:text-white flex items-center justify-center font-bold text-sm transition-colors"
+                  title="Close this banner ad"
+                  aria-label="Close banner ad"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+
+            <div class="feed-banner-body px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div class="min-w-0">
+                <h3 class="feed-banner-headline text-xs sm:text-sm font-bold text-white truncate">
+                  ${escapeHtml(currentSlot.headline)}
+                </h3>
+                <p class="feed-banner-subtext text-[11px] text-zinc-300 truncate">
+                  Below "${escapeHtml(anchorVideoTitle)}" • ${escapeHtml(currentSlot.subtext)}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="feed-banner-cta shrink-0 self-start sm:self-center px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-black text-xs font-bold transition-colors shadow"
+              >
+                ${escapeHtml(currentSlot.cta)}
+              </button>
+            </div>
+
+            <div class="w-full h-1 bg-white/10">
+              <div class="feed-banner-progress h-full bg-amber-400 transition-all duration-150 ease-linear" style="width: ${pct}%;"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderFeed() {
+        syncCategoryTabStyles();
+
+        const filtered = getFilteredVideos();
+        const count = filtered.length;
+        els.resultCountBadge.textContent = `${count} ${count === 1 ? 'video' : 'videos'}`;
+
+        if (state.activeCategory === 'Saved') {
+          els.feedHeading.textContent = 'Saved Videos';
+          els.feedSubheading.textContent = 'Your bookmarked films, dramas, and stories stored locally on this device';
+        } else if (state.activeCategory === 'All') {
+          els.feedHeading.textContent = state.activeVideoId ? 'More in Feed' : 'Trending Feed';
+          els.feedSubheading.textContent = 'Film • Drama • Stories — Banner ads sit beneath videos in the feed';
+        } else {
+          els.feedHeading.textContent = `${state.activeCategory} Feed`;
+          els.feedSubheading.textContent = `Showing ${state.activeCategory} titles — banner ads rotate beneath videos as you browse`;
+        }
+
+        if (count === 0) {
+          els.videoGrid.innerHTML = '';
+          els.emptyState.classList.remove('hidden');
+          if (state.activeCategory === 'Saved' && !state.searchQuery.trim()) {
+            els.emptyStateTitle.textContent = 'No saved videos yet';
+            els.emptyStateDesc.textContent = 'Click the Save button on any video card or inside the player to keep it here.';
+          } else {
+            els.emptyStateTitle.textContent = 'No matching videos found';
+            els.emptyStateDesc.textContent = 'Try a different search keyword or switch between All, Film, Drama, Stories, and Saved.';
+          }
+          return;
+        }
+
+        els.emptyState.classList.add('hidden');
+
+        // Group cards into rows of 2 on mobile (2-col grid) so banner ads appear directly beneath video rows
+        const chunkSize = 2;
+        const chunks = [];
+        for (let i = 0; i < filtered.length; i += chunkSize) {
+          chunks.push(filtered.slice(i, i + chunkSize));
+        }
+
+        let bannerSlotCounter = 0;
+        const htmlParts = [];
+
+        chunks.forEach((rowVideos, rowIdx) => {
+          htmlParts.push(`
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+              ${rowVideos.map((video) => buildVideoCardHtml(video)).join('')}
+            </div>
+          `);
+
+          // Place rotating banner slots beneath video rows inside the feed (after 1st row and every 2 rows)
+          const shouldInsertBanner =
+            state.bannerVisible &&
+            rowIdx < chunks.length - 1 &&
+            (rowIdx === 0 || rowIdx % 2 === 0);
+
+          if (shouldInsertBanner) {
+            const slotIdx = bannerSlotCounter++;
+            if (!state.closedBannerSlots[slotIdx]) {
+              const anchorTitle = rowVideos[0] ? rowVideos[0].title : 'Feed';
+              htmlParts.push(buildInFeedBannerSlotHtml(slotIdx, anchorTitle));
+            }
+          }
+        });
+
+        els.videoGrid.innerHTML = htmlParts.join('');
+
+        // Bind card click & save button click
+        els.videoGrid.querySelectorAll('.video-card').forEach((card) => {
+          card.addEventListener('click', () => {
+            const vidId = card.getAttribute('data-video-id');
+            if (vidId) openVideoPlayer(vidId);
+          });
+        });
+
+        els.videoGrid.querySelectorAll('.save-card-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const vidId = btn.getAttribute('data-save-id');
+            if (vidId) toggleSaveVideo(vidId, e);
+          });
+        });
+
+        // Bind in-feed banner controls
+        els.videoGrid.querySelectorAll('.feed-cycle-banner-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            rotateBannerAd(true);
+          });
+        });
+
+        els.videoGrid.querySelectorAll('.feed-close-banner-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const slotKey = btn.getAttribute('data-close-slot');
+            if (slotKey !== null) {
+              state.closedBannerSlots[slotKey] = true;
+            }
+            const remainingVisibleSlots = els.videoGrid.querySelectorAll('.in-feed-banner-slot').length - 1;
+            if (remainingVisibleSlots <= 0) {
+              state.bannerVisible = false;
+              syncBannerVisibilityUI();
+            }
+            renderFeed();
+            showToast('Banner ad closed');
+          });
+        });
+
+        els.videoGrid.querySelectorAll('.feed-banner-cta').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const slot = BANNER_SLOTS[state.bannerIndex % BANNER_SLOTS.length];
+            if (slot.action === 'openSaved') {
+              state.activeCategory = 'Saved';
+            } else if (slot.action === 'openDrama') {
+              state.activeCategory = 'Drama';
+            } else if (slot.action === 'openStories') {
+              state.activeCategory = 'Stories';
+            } else {
+              state.activeCategory = 'All';
+            }
+            renderFeed();
+            els.feedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+
+        // Keep banner timer active so banners rotate smoothly while the feed is idle
+        if (state.bannerVisible && !bannerTimerId) {
+          startBannerRotation();
+        }
+      }
+
+      // =========================================================================
+      // VIDEO PLAYER & TIMED ROTATING IN-FEED BANNER ADS (30s & 60s)
+      // =========================================================================
+      function syncInFeedBannerContent() {
+        const slot = BANNER_SLOTS[state.bannerIndex % BANNER_SLOTS.length];
+        const totalSec = Math.max(1, state.bannerActiveInterval || getSlotInterval(state.bannerIndex));
+        const pct = Math.max(0, Math.min(100, (state.bannerSecondsLeft / totalSec) * 100));
+
+        els.videoGrid.querySelectorAll('.in-feed-banner-slot').forEach((bannerEl) => {
+          const tagEl = bannerEl.querySelector('.feed-banner-tag');
+          const headlineEl = bannerEl.querySelector('.feed-banner-headline');
+          const ctaEl = bannerEl.querySelector('.feed-banner-cta');
+          const countdownEl = bannerEl.querySelector('.feed-banner-countdown');
+          const progressEl = bannerEl.querySelector('.feed-banner-progress');
+          const bodyEl = bannerEl.querySelector('.feed-banner-body');
+
+          if (tagEl) tagEl.textContent = slot.tag;
+          if (headlineEl) headlineEl.textContent = slot.headline;
+          if (ctaEl) ctaEl.textContent = slot.cta;
+          if (countdownEl) countdownEl.textContent = String(state.bannerSecondsLeft);
+          if (progressEl) progressEl.style.width = `${pct}%`;
+
+          if (bodyEl) {
+            bodyEl.classList.remove('banner-snappy-swap');
+            void bodyEl.offsetWidth;
+            bodyEl.classList.add('banner-snappy-swap');
+          }
+        });
+      }
+
+      function updateBannerCountdownOnly() {
+        const totalSec = Math.max(1, state.bannerActiveInterval || getSlotInterval(state.bannerIndex));
+        const pct = Math.max(0, Math.min(100, (state.bannerSecondsLeft / totalSec) * 100));
+
+        els.videoGrid.querySelectorAll('.feed-banner-countdown').forEach((el) => {
+          el.textContent = String(state.bannerSecondsLeft);
+        });
+        els.videoGrid.querySelectorAll('.feed-banner-progress').forEach((el) => {
+          el.style.width = `${pct}%`;
+        });
+      }
+
+      function setBannerSlot(nextIndex) {
+        state.bannerIndex = ((nextIndex % BANNER_SLOTS.length) + BANNER_SLOTS.length) % BANNER_SLOTS.length;
+        const duration = getSlotInterval(state.bannerIndex);
+        state.bannerActiveInterval = duration;
+        state.bannerSecondsLeft = duration;
+        syncInFeedBannerContent();
+      }
+
+      function rotateBannerAd(resetTimer = true) {
+        setBannerSlot(state.bannerIndex + 1);
+        if (bannerSwapTimeoutId) {
+          clearTimeout(bannerSwapTimeoutId);
+        }
+        bannerSwapTimeoutId = setTimeout(() => {
+          els.videoGrid.querySelectorAll('.feed-banner-body').forEach((bodyEl) => {
+            bodyEl.classList.remove('banner-snappy-swap');
+          });
+        }, 200);
+
+        if (resetTimer && state.bannerVisible) {
+          startBannerRotation();
+        }
+      }
+
+      function startBannerRotation() {
+        stopBannerRotation();
+        if (!state.bannerVisible) return;
+
+        updateBannerCountdownOnly();
+
+        // Snappy 500ms tick paired with smooth 30s/60s slot intervals
+        let subTicks = 0;
+        bannerTimerId = setInterval(() => {
+          if (!state.bannerVisible) {
+            stopBannerRotation();
+            return;
+          }
+          subTicks += 1;
+          if (subTicks >= 2) {
+            subTicks = 0;
+            state.bannerSecondsLeft -= 1;
+            if (state.bannerSecondsLeft <= 0) {
+              setBannerSlot(state.bannerIndex + 1);
+            } else {
+              updateBannerCountdownOnly();
+            }
+          }
+        }, 500);
+      }
+
+      function stopBannerRotation() {
+        if (bannerTimerId) {
+          clearInterval(bannerTimerId);
+          bannerTimerId = null;
+        }
+      }
+
+      function syncBannerVisibilityUI() {
+        if (state.bannerVisible) {
+          els.reopenBannerBtn.classList.add('hidden');
+          startBannerRotation();
+        } else {
+          els.reopenBannerBtn.classList.remove('hidden');
+          stopBannerRotation();
+        }
+      }
+<!-- ... existing code ... -->
+      function openVideoPlayer(videoId) {
+        const video = state.videos.find((v) => v.id === videoId);
+        if (!video) return;
+
+        state.activeVideoId = video.id;
+        state.bannerVisible = true;
+        state.closedBannerSlots = {};
+        state.bannerIndex = 0;
+        const firstInterval = getSlotInterval(0);
+        state.bannerActiveInterval = firstInterval;
+        state.bannerSecondsLeft = firstInterval;
+
+        els.playingTitle.textContent = video.title;
+        els.playingCategoryBadge.textContent = video.category;
+        els.playingDurationBadge.textContent = video.duration ? `Duration: ${video.duration}` : '';
+
+        // Embed YouTube video cleanly
+        const embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(video.youtubeId)}?autoplay=1&rel=0&modestbranding=1`;
+        els.ytPlayerFrame.src = embedUrl;
+
+        els.playerSection.classList.remove('hidden');
+        syncPlayerSaveButton();
+        syncBannerVisibilityUI();
+        renderFeed();
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function closeVideoPlayer() {
+        state.activeVideoId = null;
+        els.ytPlayerFrame.src = '';
+        els.playerSection.classList.add('hidden');
+        renderFeed();
+      }
+<!-- ... existing code ... -->
+        els.closeBannerAdBtn.addEventListener('click', () => {
+          state.bannerVisible = false;
+          syncBannerVisibilityUI();
+          renderFeed();
+          showToast('Feed banners hidden');
+        });
+
+        els.reopenBannerBtn.addEventListener('click', () => {
+          state.bannerVisible = true;
+          state.closedBannerSlots = {};
+          const slotInterval = getSlotInterval(state.bannerIndex);
+          state.bannerActiveInterval = slotInterval;
+          state.bannerSecondsLeft = slotInterval;
+          syncBannerVisibilityUI();
+          renderFeed();
+          showToast('Feed banners restored');
+        });
+
+        els.cycleBannerNowBtn.addEventListener('click', () => {
+          rotateBannerAd(true);
+        });
+
+        els.bannerActionBtn.addEventListener('click', () => {
+          const slot = BANNER_SLOTS[state.bannerIndex % BANNER_SLOTS.length];
+          if (slot.action === 'openSaved') {
+            state.activeCategory = 'Saved';
+          } else if (slot.action === 'openDrama') {
+            state.activeCategory = 'Drama';
+          } else if (slot.action === 'openStories') {
+            state.activeCategory = 'Stories';
+          } else {
+            state.activeCategory = 'All';
+          }
+          syncBannerVisibilityUI();
+          renderFeed();
+          els.feedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+<!-- ... existing code ... -->
+```

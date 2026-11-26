@@ -1,0 +1,6 @@
+{
+  "name": "FilmDrama Box",
+  "description": "Films, dramas, and stories streaming showcase with search, saved watchlist, rotating sponsor banner, and admin video publishing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

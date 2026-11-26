@@ -1,0 +1,1844 @@
+```html
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FilmDrama Box — Stream Films, Drama Series &amp; Stories</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      overflow-x: hidden;
+      background-color: #0b0b0e;
+      color: #f4f4f5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Native edge-to-edge 16:9 aspect ratio with zero rounded corners or outer borders */
+    .yt-aspect {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #000000;
+      border-radius: 0 !important;
+      border: 0 !important;
+      margin: 0 !important;
+    }
+    .yt-aspect > iframe,
+    .yt-aspect > img,
+    .yt-aspect > .yt-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 0 !important;
+    }
+    /* Smooth 30s ad cycle transition */
+    .ad-refresh-flash {
+      animation: adSwapFade 0.35s ease-out;
+    }
+    @keyframes adSwapFade {
+      0% { opacity: 0.25; transform: translateY(2px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    /* Safe margin above mobile system back/home navigation bar */
+    .bottom-safe-zone {
+      bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+    }
+  </style>
+</head>
+<body class="bg-[#0b0b0e] text-zinc-100 min-h-screen w-full m-0 p-0">
+
+  <!-- TOP STICKY HEADER (Edge-to-Edge Full Width) -->
+  <header id="appHeader" class="sticky top-0 z-40 w-full bg-[#0f0f13]/95 backdrop-blur-md border-b border-zinc-800/90">
+    <div class="w-full px-3 h-12 flex items-center justify-between gap-2">
+      <!-- Brand Logo -->
+      <button id="brandHomeBtn" type="button" class="flex items-center gap-2 text-left focus:outline-none shrink-0">
+        <span class="w-7 h-7 rounded-md bg-red-600 flex items-center justify-center shadow-sm">
+          <svg class="w-3.5 h-3.5 text-white fill-current ml-0.5" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </span>
+        <span class="text-base font-extrabold tracking-tight text-white">
+          FilmDrama<span class="text-red-500">Box</span>
+        </span>
+      </button>
+
+      <!-- Header Right Controls -->
+      <div class="flex items-center gap-1.5">
+        <button
+          id="toggleSearchBtn"
+          type="button"
+          class="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-zinc-300"
+          aria-label="Search videos and series"
+          title="Search"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7" />
+            <path stroke-linecap="round" d="M20 20l-3.5-3.5" />
+          </svg>
+        </button>
+
+        <button
+          id="headerAdminBtn"
+          type="button"
+          class="px-2.5 h-8 rounded-full bg-amber-400 hover:bg-amber-300 text-black text-xs font-extrabold flex items-center gap-1 transition-colors"
+          title="Open Sohail Nangoor Admin Studio"
+        >
+          <span>Admin</span>
+        </button>
+
+        <button
+          id="headerProfileBtn"
+          type="button"
+          class="h-8 pl-1.5 pr-2.5 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center gap-1.5 text-xs font-semibold text-zinc-200"
+          title="Profile and Admin Access"
+        >
+          <span id="profileInitial" class="w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-extrabold flex items-center justify-center">
+            G
+          </span>
+          <span id="profileDisplayName" class="max-w-[82px] truncate">Guest</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Collapsible Search Bar -->
+    <div id="searchBarContainer" class="hidden w-full px-3 pb-2.5 pt-1 bg-[#0f0f13] border-t border-zinc-800/80">
+      <div class="relative flex items-center w-full">
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Search films, drama episodes, folders..."
+          class="w-full h-9 pl-3.5 pr-16 rounded-full bg-zinc-900 border border-zinc-700 focus:border-red-500 text-xs text-white placeholder-zinc-400 focus:outline-none"
+        />
+        <button
+          id="clearSearchBtn"
+          type="button"
+          class="hidden absolute right-2 px-2 py-0.5 rounded-full bg-zinc-800 text-[11px] font-semibold text-zinc-300 hover:text-white"
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- SLOT 1: AD_SLOT_TOP (Slim Persistent Top Banner Strip on Feed Views — 30s Auto-Remove & Reload) -->
+    <div id="adSlotTopWrapper" class="w-full bg-[#13131a] border-t border-zinc-800/90">
+      <div id="adSlotTopActive" class="w-full h-[42px] px-3 flex items-center justify-between gap-2">
+        <!-- AD_NETWORK_SCRIPT_HERE (AD_SLOT_TOP: 320x50 / Slim Top Strip) -->
+        <div id="adTopContainer" class="flex-1 min-w-0 flex items-center">
+          <a
+            id="adTopLink"
+            href="https://example.com/top-offer-1"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex-1 min-w-0 flex items-center gap-2 py-1 group"
+          >
+            <span class="px-1.5 py-0.5 rounded bg-amber-400 text-black text-[9px] font-extrabold uppercase shrink-0">
+              Ad
+            </span>
+            <div class="min-w-0 flex-1">
+              <p id="adTopTitle" class="text-xs font-bold text-white truncate group-hover:text-amber-300 transition-colors">
+                HD Streaming Pass — Watch Uninterrupted Movies &amp; Originals
+              </p>
+            </div>
+            <span id="adTopCta" class="px-2 py-0.5 rounded bg-zinc-800 text-amber-300 text-[10px] font-bold shrink-0">
+              Open
+            </span>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span id="adTopTimer" class="text-[10px] font-semibold text-zinc-400 tabular-nums" title="Auto-reloads fresh ad every 30s">30s</span>
+          <button
+            id="closeAdTopBtn"
+            type="button"
+            class="w-6 h-6 rounded-full bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center"
+            title="Hide top banner for 60 seconds"
+            aria-label="Close top banner"
+          >
+            &times;
+          </button>
+        </div>
+      </div>
+
+      <!-- Cooldown Notice when Top Ad is Closed -->
+      <div id="adSlotTopCooldown" class="hidden w-full h-[26px] px-3 flex items-center justify-between text-[10px] text-zinc-500 bg-[#0d0d11]">
+        <span>Top ad hidden — reloading in <strong id="adTopCooldownSec" class="text-zinc-300">60s</strong></span>
+        <button id="restoreAdTopBtn" type="button" class="text-amber-400 font-semibold hover:underline">Show Now</button>
+      </div>
+    </div>
+
+    <!-- HORIZONTAL SCROLLABLE PURE ENGLISH CATEGORY TABS -->
+    <nav class="w-full px-2 py-2 bg-[#0b0b0e] border-t border-zinc-800/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <button type="button" data-tab="All" class="nav-tab px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-black">
+        All
+      </button>
+      <button type="button" data-tab="Film" class="nav-tab px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-zinc-900 text-zinc-300 hover:bg-zinc-800">
+        Film
+      </button>
+      <button type="button" data-tab="Drama" class="nav-tab px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-zinc-900 text-zinc-300 hover:bg-zinc-800">
+        Drama
+      </button>
+      <button type="button" data-tab="Stories" class="nav-tab px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-zinc-900 text-zinc-300 hover:bg-zinc-800">
+        Stories
+      </button>
+      <button type="button" data-tab="Drama Box" class="nav-tab px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-zinc-900 text-zinc-300 hover:bg-zinc-800">
+        Drama Box
+      </button>
+      <button type="button" data-tab="Subscribed" class="nav-tab px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-zinc-900 text-zinc-300 hover:bg-zinc-800 flex items-center gap-1.5">
+        <span>Subscribed</span>
+        <span id="subscribedCountBadge" class="px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[10px] font-extrabold">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- FULL-BLEED EDGE-TO-EDGE STICKY VIDEO PLAYER (Zero Outer Frame / Zero Cover Box) -->
+  <section id="stickyPlayerSection" class="hidden sticky top-[48px] z-30 w-full m-0 p-0 bg-black border-b border-zinc-800">
+    <!-- 100% Edge-to-Edge 16:9 Iframe Container -->
+    <div id="playerFrameContainer" class="yt-aspect w-full m-0 p-0 rounded-none border-0 bg-black">
+      <iframe
+        id="ytPlayerIframe"
+        src=""
+        title="FilmDrama Box Video Player"
+        class="w-full h-full border-0 m-0 p-0 rounded-none"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+        allowfullscreen
+        webkitallowfullscreen
+        mozallowfullscreen
+      ></iframe>
+    </div>
+
+    <!-- Edge-to-Edge Now Playing Metadata & Action Controls -->
+    <div class="w-full px-3 py-2.5 bg-[#101015] border-t border-zinc-800/80">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span id="playerCategoryBadge" class="px-1.5 py-0.5 rounded bg-red-600/20 text-red-400 text-[10px] font-extrabold uppercase">
+              Drama
+            </span>
+            <button
+              id="playerFolderJumpBtn"
+              type="button"
+              class="text-[11px] font-semibold text-amber-400 hover:underline truncate"
+            >
+              Series Folder
+            </button>
+          </div>
+          <h1 id="playerVideoTitle" class="text-sm sm:text-base font-bold text-white leading-snug line-clamp-2">
+            Video Title
+          </h1>
+        </div>
+
+        <button
+          id="closePlayerBtn"
+          type="button"
+          class="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 flex items-center justify-center text-sm font-bold shrink-0"
+          title="Close Player"
+          aria-label="Close video player"
+        >
+          &times;
+        </button>
+      </div>
+
+      <!-- Action Buttons Row (Subscribe, Fullscreen, Next Episode) -->
+      <div class="mt-2.5 flex items-center justify-between gap-2">
+        <button
+          id="playerSubscribeBtn"
+          type="button"
+          class="px-3.5 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-black text-xs font-extrabold transition-colors"
+        >
+          Subscribe
+        </button>
+
+        <div class="flex items-center gap-1.5">
+          <button
+            id="playerFullscreenBtn"
+            type="button"
+            class="px-3 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-semibold text-zinc-200 flex items-center gap-1"
+            title="Enter Full Screen"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+            </svg>
+            <span>Fullscreen</span>
+          </button>
+
+          <button
+            id="playerNextEpBtn"
+            type="button"
+            class="px-3 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-semibold text-zinc-200"
+          >
+            Next &rarr;
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTENT AREA (100% Full-Width Edge-to-Edge, Zero Outer Padding or Borders) -->
+  <main id="mainContentArea" class="w-full m-0 p-0 pb-28">
+    <!-- Active Folder Filter Banner (shown when browsing inside a specific folder) -->
+    <div id="activeFolderHeader" class="hidden w-full px-3 py-3 bg-[#13131a] border-b border-zinc-800">
+      <div class="flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <button id="backFromFolderBtn" type="button" class="text-xs font-bold text-amber-400 hover:underline mb-1 inline-flex items-center gap-1">
+            <span>&larr; Back to All Folders</span>
+          </button>
+          <h2 id="activeFolderTitle" class="text-base font-extrabold text-white truncate">Folder Name</h2>
+          <p id="activeFolderMeta" class="text-xs text-zinc-400">0 Episodes</p>
+        </div>
+        <button
+          id="activeFolderSubBtn"
+          type="button"
+          class="px-3.5 py-1.5 rounded-full bg-amber-400 text-black text-xs font-extrabold shrink-0"
+        >
+          Subscribe
+        </button>
+      </div>
+    </div>
+
+    <!-- PRIMARY FEED / FOLDERS / SUBSCRIBED CONTAINER -->
+    <div id="feedContainer" class="w-full m-0 p-0"></div>
+  </main>
+
+  <!-- SLOT 3: AD_SLOT_BOTTOM_SAFE (Slim Banner Fixed Safely Above Mobile Back/Navigation Bar During Playback) -->
+  <div
+    id="adSlotBottomSafeWrapper"
+    class="hidden fixed left-0 right-0 z-40 bottom-safe-zone px-2 pointer-events-none"
+  >
+    <div class="w-full max-w-2xl mx-auto pointer-events-auto rounded-xl bg-[#161620]/95 backdrop-blur-md border border-zinc-700/90 shadow-2xl overflow-hidden">
+      <div id="adSlotBottomSafeActive" class="w-full h-[46px] px-3 flex items-center justify-between gap-2">
+        <!-- AD_NETWORK_SCRIPT_HERE (AD_SLOT_BOTTOM_SAFE: 320x50 Slim Safe-Zone Banner) -->
+        <div id="adBottomSafeContainer" class="flex-1 min-w-0 flex items-center">
+          <a
+            id="adBottomSafeLink"
+            href="https://example.com/bottom-offer-1"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex-1 min-w-0 flex items-center gap-2 py-1 group"
+          >
+            <span class="px-1.5 py-0.5 rounded bg-amber-400 text-black text-[9px] font-extrabold uppercase shrink-0">
+              Ad
+            </span>
+            <div class="min-w-0 flex-1">
+              <p id="adBottomSafeTitle" class="text-xs font-bold text-white truncate group-hover:text-amber-300">
+                Play Instant Cloud Games While You Watch Top Series
+              </p>
+            </div>
+            <span id="adBottomSafeCta" class="px-2 py-0.5 rounded bg-amber-400 text-black text-[10px] font-extrabold shrink-0">
+              Play
+            </span>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span id="adBottomSafeTimer" class="text-[10px] font-semibold text-zinc-400 tabular-nums" title="Auto-reloads fresh ad every 30s">30s</span>
+          <button
+            id="closeAdBottomSafeBtn"
+            type="button"
+            class="w-6 h-6 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center"
+            title="Hide banner for 60 seconds"
+            aria-label="Close bottom banner"
+          >
+            &times;
+          </button>
+        </div>
+      </div>
+
+      <!-- Cooldown Notice when Bottom Safe Ad is Closed -->
+      <div id="adSlotBottomSafeCooldown" class="hidden w-full h-[28px] px-3 flex items-center justify-between text-[10px] text-zinc-400 bg-[#0e0e14]">
+        <span>Player banner hidden — resuming in <strong id="adBottomSafeCooldownSec" class="text-white">60s</strong></span>
+        <button id="restoreAdBottomSafeBtn" type="button" class="text-amber-400 font-semibold hover:underline">Show Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE & ADMIN UNLOCK MODAL (Sohail Nangoor) -->
+  <div id="profileModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-sm p-3">
+    <div class="w-full max-w-md rounded-xl bg-[#14141a] border border-zinc-800 shadow-2xl overflow-hidden">
+      <div class="px-4 py-3.5 border-b border-zinc-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-extrabold text-white">Profile &amp; Sohail Nangoor Admin Access</h2>
+          <p class="text-[11px] text-zinc-400">Enter passkey <span class="text-amber-400 font-semibold">Sohail Nangoor 786</span> to unlock Studio</p>
+        </div>
+        <button id="closeProfileModalBtn" type="button" class="w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center font-bold">
+          &times;
+        </button>
+      </div>
+
+      <form id="profileForm" class="p-4 space-y-3.5">
+        <div>
+          <label for="profileNameInput" class="block text-xs font-semibold text-zinc-300 mb-1">
+            Viewer Name or Admin Passkey
+          </label>
+          <input
+            id="profileNameInput"
+            type="text"
+            placeholder="Sohail Nangoor 786"
+            class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white placeholder-zinc-500 focus:outline-none"
+            required
+          />
+          <p class="text-[11px] text-zinc-400 mt-1">
+            Accepted keys: <span class="text-zinc-200 font-semibold">Sohail Nangoor 786</span>, <span class="text-zinc-200 font-semibold">Sohail Nangoor</span>, or <span class="text-zinc-200 font-semibold">admin</span>.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <button
+            id="oneTapUnlockBtn"
+            type="button"
+            class="px-3 py-2 rounded-lg bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/40 text-amber-300 text-xs font-bold"
+          >
+            One-Tap Unlock (Sohail Nangoor 786)
+          </button>
+
+          <div class="flex items-center gap-2 ml-auto">
+            <button id="cancelProfileModalBtn" type="button" class="px-3.5 py-2 rounded-lg bg-zinc-800 text-xs font-semibold text-zinc-200">
+              Cancel
+            </button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white">
+              Unlock &amp; Open
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SOHAIL NANGOOR 3-TAB ADMIN STUDIO MODAL -->
+  <div id="adminModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 backdrop-blur-sm p-2 sm:p-4">
+    <div class="w-full max-w-2xl rounded-xl bg-[#131318] border border-zinc-800 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+      <!-- Admin Header -->
+      <div class="px-4 py-3 bg-[#181820] border-b border-zinc-800 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-extrabold uppercase shrink-0">
+            Sohail Nangoor
+          </span>
+          <h2 class="text-sm font-extrabold text-white truncate">Admin Studio — Folders &amp; Videos</h2>
+        </div>
+        <button id="closeAdminModalBtn" type="button" class="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center font-bold shrink-0">
+          &times;
+        </button>
+      </div>
+
+      <!-- 3 Admin Tabs -->
+      <div class="grid grid-cols-3 bg-[#0e0e12] border-b border-zinc-800 text-xs font-bold">
+        <button type="button" data-admin-tab="folder" class="admin-tab-btn py-2.5 text-center border-b-2 border-amber-400 text-amber-400 bg-zinc-900/60">
+          1. New Folder
+        </button>
+        <button type="button" data-admin-tab="video" class="admin-tab-btn py-2.5 text-center border-b-2 border-transparent text-zinc-400 hover:text-zinc-200">
+          2. Add Video
+        </button>
+        <button type="button" data-admin-tab="manage" class="admin-tab-btn py-2.5 text-center border-b-2 border-transparent text-zinc-400 hover:text-zinc-200">
+          3. Manage &amp; Backup
+        </button>
+      </div>
+
+      <!-- Admin Tab Bodies -->
+      <div class="p-4 overflow-y-auto space-y-4 flex-1">
+        <!-- TAB 1: NEW FOLDER -->
+        <form id="newFolderForm" class="admin-panel-view space-y-3.5">
+          <div class="p-3 rounded-lg bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300">
+            Create unlimited <strong class="text-white">Drama Series</strong> or <strong class="text-white">Film Collection</strong> folders. Users can open any folder to watch episodes in order or subscribe for updates.
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">Folder / Series Title (English)</label>
+            <input
+              id="folderTitleInput"
+              type="text"
+              placeholder="e.g., Midnight Promises — Season 1"
+              class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white placeholder-zinc-500 focus:outline-none"
+              required
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Folder Category</label>
+              <select
+                id="folderCategorySelect"
+                class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white focus:outline-none"
+              >
+                <option value="Drama">Drama Series</option>
+                <option value="Film">Film Collection</option>
+                <option value="Stories">Stories Playlist</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Cover Thumbnail URL (Optional)</label>
+              <input
+                id="folderThumbInput"
+                type="url"
+                placeholder="https://i.ytimg.com/vi/VIDEO_ID/hqdefault.jpg"
+                class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white placeholder-zinc-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-black text-xs font-extrabold uppercase tracking-wide">
+            Create Folder Now
+          </button>
+        </form>
+
+        <!-- TAB 2: ADD VIDEO -->
+        <form id="addVideoForm" class="admin-panel-view hidden space-y-3.5">
+          <div class="p-3 rounded-lg bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300">
+            Every added video automatically appears in <strong class="text-white">both the main Home Feed</strong> and <strong class="text-white">inside the selected Folder</strong>.
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">YouTube Video URL or 11-Character Video ID</label>
+            <input
+              id="videoUrlInput"
+              type="text"
+              placeholder="https://www.youtube.com/watch?v=aqz-KE-bpKQ or aqz-KE-bpKQ"
+              class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white placeholder-zinc-500 focus:outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">Video / Episode Title (English)</label>
+            <input
+              id="videoTitleInput"
+              type="text"
+              placeholder="e.g., Episode 01 — The Secret Return (Full HD)"
+              class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white placeholder-zinc-500 focus:outline-none"
+              required
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Category</label>
+              <select
+                id="videoCategorySelect"
+                class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white focus:outline-none"
+              >
+                <option value="Drama">Drama</option>
+                <option value="Film">Film</option>
+                <option value="Stories">Stories</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Assign to Folder</label>
+              <select
+                id="videoFolderSelect"
+                class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white focus:outline-none"
+              ></select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Duration Label</label>
+              <input
+                id="videoDurationInput"
+                type="text"
+                value="42:15"
+                placeholder="42:15"
+                class="w-full h-10 px-3 rounded-lg bg-[#0b0b0e] border border-zinc-700 focus:border-amber-400 text-sm text-white placeholder-zinc-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-extrabold uppercase tracking-wide">
+            Publish to Home Feed &amp; Folder
+          </button>
+        </form>
+
+        <!-- TAB 3: MANAGE & BACKUP -->
+        <div id="manageBackupView" class="admin-panel-view hidden space-y-4">
+          <div class="p-3 rounded-lg bg-zinc-900 border border-zinc-800 space-y-2.5">
+            <h3 class="text-xs font-extrabold text-white uppercase">Backup, Restore &amp; Ad Slot Hooks</h3>
+            <p class="text-[11px] text-zinc-400">
+              Export all folders and videos as JSON, restore from backup, or insert live ad scripts inside <code class="text-amber-300">AD_SLOT_TOP</code>, <code class="text-amber-300">AD_SLOT_FEED</code>, and <code class="text-amber-300">AD_SLOT_BOTTOM_SAFE</code>.
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <button id="exportJsonBtn" type="button" class="px-3 py-1.5 rounded-lg bg-amber-400 text-black text-xs font-bold">
+                Export JSON Backup
+              </button>
+              <label class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold cursor-pointer">
+                Import JSON
+                <input id="importJsonInput" type="file" accept=".json" class="hidden" />
+              </label>
+              <button id="resetDemoDataBtn" type="button" class="px-3 py-1.5 rounded-lg bg-red-600/20 border border-red-500/40 text-red-400 text-xs font-bold ml-auto">
+                Reset Default Data
+              </button>
+            </div>
+          </div>
+
+          <!-- Folders List -->
+          <div>
+            <h3 class="text-xs font-extrabold text-zinc-300 uppercase mb-2">Existing Folders</h3>
+            <div id="adminFolderList" class="space-y-1.5"></div>
+          </div>
+
+          <!-- Videos List -->
+          <div>
+            <h3 class="text-xs font-extrabold text-zinc-300 uppercase mb-2">Published Videos</h3>
+            <div id="adminVideoList" class="space-y-1.5"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NON-BLOCKING TOAST MESSAGE -->
+  <div id="toastBanner" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 text-xs font-semibold text-white shadow-xl">
+    Saved
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'filmdrama_box_v5_safe_bottom_slots';
+
+      // Default English Folders & Playable Videos
+      const DEFAULT_DATA = {
+        profileName: 'Guest',
+        folders: [
+          {
+            id: 'folder-crimson-horizon',
+            title: 'Crimson Horizon — Drama Series',
+            category: 'Drama',
+            thumbnail: 'https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg'
+          },
+          {
+            id: 'folder-midnight-express',
+            title: 'Midnight Express — Action & Thriller Films',
+            category: 'Film',
+            thumbnail: 'https://i.ytimg.com/vi/LXb3EKWsInQ/hqdefault.jpg'
+          },
+          {
+            id: 'folder-silver-lining',
+            title: 'Silver Lining — Romantic Drama',
+            category: 'Drama',
+            thumbnail: 'https://i.ytimg.com/vi/ScMzIvxBSi4/hqdefault.jpg'
+          },
+          {
+            id: 'folder-urban-tales',
+            title: 'City Nights — Short Stories',
+            category: 'Stories',
+            thumbnail: 'https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg'
+          }
+        ],
+        videos: [
+          {
+            id: 'vid-101',
+            youtubeId: 'aqz-KE-bpKQ',
+            title: 'Crimson Horizon — Episode 01: The Awakening (Full HD)',
+            category: 'Drama',
+            folderId: 'folder-crimson-horizon',
+            duration: '44:10',
+            views: '1.4M views',
+            uploadedAt: '2 hours ago'
+          },
+          {
+            id: 'vid-102',
+            youtubeId: 'LXb3EKWsInQ',
+            title: 'Beyond the Summit — Full Action Adventure Film in 4K',
+            category: 'Film',
+            folderId: 'folder-midnight-express',
+            duration: '1:52:30',
+            views: '2.8M views',
+            uploadedAt: '5 hours ago'
+          },
+          {
+            id: 'vid-103',
+            youtubeId: 'ScMzIvxBSi4',
+            title: 'Silver Lining — Episode 02: Unspoken Vows',
+            category: 'Drama',
+            folderId: 'folder-silver-lining',
+            duration: '39:45',
+            views: '920K views',
+            uploadedAt: '1 day ago'
+          },
+          {
+            id: 'vid-104',
+            youtubeId: 'aqz-KE-bpKQ',
+            title: 'Crimson Horizon — Episode 02: Shadows of the Past',
+            category: 'Drama',
+            folderId: 'folder-crimson-horizon',
+            duration: '41:20',
+            views: '1.1M views',
+            uploadedAt: '1 day ago'
+          },
+          {
+            id: 'vid-105',
+            youtubeId: 'jNQXAC9IVRw',
+            title: 'Last Train Home — Heartwarming Short Story',
+            category: 'Stories',
+            folderId: 'folder-urban-tales',
+            duration: '14:08',
+            views: '540K views',
+            uploadedAt: '2 days ago'
+          },
+          {
+            id: 'vid-106',
+            youtubeId: 'LXb3EKWsInQ',
+            title: 'Ocean Frontier — Full Feature Documentary Film',
+            category: 'Film',
+            folderId: 'folder-midnight-express',
+            duration: '1:38:12',
+            views: '1.9M views',
+            uploadedAt: '3 days ago'
+          }
+        ],
+        subscribedFolderIds: ['folder-crimson-horizon']
+      };
+
+      // Distinct Ad Creative Pools for Top Strip, In-Feed Blocks, and Bottom Safe-Zone Player Strip
+      const TOP_AD_POOL = [
+        {
+          title: 'HD Streaming Pass — Watch Uninterrupted Movies & Originals',
+          cta: 'Open',
+          url: 'https://example.com/top-offer-1'
+        },
+        {
+          title: 'Unlimited Night Data Bundle — Stream 4K Dramas All Night',
+          cta: 'Activate',
+          url: 'https://example.com/top-offer-2'
+        },
+        {
+          title: 'Free Cloud Storage 100GB — Save Your Favorite Clips Offline',
+          cta: 'Claim',
+          url: 'https://example.com/top-offer-3'
+        }
+      ];
+
+      const FEED_AD_POOL = [
+        {
+          headline: 'Upgrade Your Mobile Data Pack for Unlimited Drama Streaming',
+          subtext: 'Instant activation • High-speed 4G/5G streaming bundle',
+          domain: 'streamoffers.app',
+          cta: 'Learn More',
+          badge: '300x100',
+          url: 'https://example.com/feed-offer-1'
+        },
+        {
+          headline: 'Zero-Install Mobile Arcade — 200+ Free Action & Racing Games',
+          subtext: 'No storage needed • Opens in a separate browser tab',
+          domain: 'cloudplay.mobi',
+          cta: 'Play Now',
+          badge: 'GAME',
+          url: 'https://example.com/feed-offer-2'
+        },
+        {
+          headline: 'Crystal Clear Bass Wireless Earbuds — Flash 60% Off Deal',
+          subtext: 'Free express delivery • Built for late-night binge sessions',
+          domain: 'audiodeals.store',
+          cta: 'Shop Deal',
+          badge: 'DEAL',
+          url: 'https://example.com/feed-offer-3'
+        }
+      ];
+
+      const BOTTOM_SAFE_AD_POOL = [
+        {
+          title: 'Play Instant Cloud Games While You Watch Top Series',
+          cta: 'Play',
+          url: 'https://example.com/bottom-offer-1'
+        },
+        {
+          title: 'Save 50% on Weekly Super Data Pass — Instant Activation',
+          cta: 'Get Offer',
+          url: 'https://example.com/bottom-offer-2'
+        },
+        {
+          title: 'New Mystery Thriller Audiobook — Listen Free Today',
+          cta: 'Listen',
+          url: 'https://example.com/bottom-offer-3'
+        }
+      ];
+
+      let state = loadState();
+      let activeTab = 'All';
+      let selectedFolderId = null;
+      let searchQuery = '';
+      let currentPlayingVideoId = null;
+
+      // Independent 30-second auto-remove & reload timers + 60-second close cooldowns
+      const adState = {
+        top: { index: 0, remaining: 30, cooldown: 0 },
+        feed: { index: 0, remaining: 30, cooldown: 0 },
+        bottomSafe: { index: 0, remaining: 30, cooldown: 0 }
+      };
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return JSON.parse(JSON.stringify(DEFAULT_DATA));
+          const parsed = JSON.parse(raw);
+          return {
+            profileName: parsed.profileName || 'Guest',
+            folders: Array.isArray(parsed.folders) ? parsed.folders : DEFAULT_DATA.folders,
+            videos: Array.isArray(parsed.videos) ? parsed.videos : DEFAULT_DATA.videos,
+            subscribedFolderIds: Array.isArray(parsed.subscribedFolderIds) ? parsed.subscribedFolderIds : []
+          };
+        } catch (e) {
+          return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          console.error('Storage save failed:', e);
+        }
+      }
+
+      function showToast(msg) {
+        const toast = document.getElementById('toastBanner');
+        toast.textContent = msg;
+        toast.classList.remove('hidden');
+        clearTimeout(showToast._timer);
+        showToast._timer = setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 2600);
+      }
+
+      function extractYouTubeId(input) {
+        const clean = String(input || '').trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(clean)) return clean;
+        const patterns = [
+          /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+          /[?&]v=([a-zA-Z0-9_-]{11})/
+        ];
+        for (const pattern of patterns) {
+          const match = clean.match(pattern);
+          if (match && match[1]) return match[1];
+        }
+        return null;
+      }
+
+      function getFolderById(folderId) {
+        return state.folders.find((f) => f.id === folderId) || null;
+      }
+
+      function isFolderSubscribed(folderId) {
+        return state.subscribedFolderIds.includes(folderId);
+      }
+
+      function toggleFolderSubscription(folderId) {
+        if (!folderId) return;
+        const idx = state.subscribedFolderIds.indexOf(folderId);
+        const folder = getFolderById(folderId);
+        if (idx === -1) {
+          state.subscribedFolderIds.push(folderId);
+          showToast(`Subscribed to ${folder ? folder.title : 'Series'}`);
+        } else {
+          state.subscribedFolderIds.splice(idx, 1);
+          showToast(`Unsubscribed from ${folder ? folder.title : 'Series'}`);
+        }
+        saveState();
+        updateSubscribedBadge();
+        updatePlayerSubscribeButton();
+        renderMainView();
+      }
+
+      function updateSubscribedBadge() {
+        const badge = document.getElementById('subscribedCountBadge');
+        badge.textContent = String(state.subscribedFolderIds.length);
+      }
+
+      function isAdminUnlocked(nameValue) {
+        const raw = String(nameValue !== undefined ? nameValue : state.profileName).trim();
+        const normalized = raw.toLowerCase().replace(/\s+/g, ' ');
+        return (
+          normalized === 'sohail nangoor 786' ||
+          normalized === 'sohail nangoor' ||
+          normalized === 'sohailnangoor786' ||
+          normalized === 'admin' ||
+          normalized === 'kingadmin' ||
+          raw.includes('सोहेल नागौर 786') ||
+          raw.includes('سہیل نانگو 786')
+        );
+      }
+
+      function renderHeaderProfile() {
+        const display = document.getElementById('profileDisplayName');
+        const initial = document.getElementById('profileInitial');
+        const cleanName = state.profileName || 'Guest';
+        display.textContent = isAdminUnlocked(cleanName) ? 'Sohail Nangoor' : cleanName;
+        initial.textContent = display.textContent.charAt(0).toUpperCase() || 'G';
+      }
+
+      // PLAY VIDEO IN FULL-BLEED STICKY PLAYER + SHOW SAFE-ZONE BOTTOM BANNER
+      function playVideo(videoId) {
+        const video = state.videos.find((v) => v.id === videoId);
+        if (!video) return;
+
+        currentPlayingVideoId = video.id;
+        const section = document.getElementById('stickyPlayerSection');
+        const iframe = document.getElementById('ytPlayerIframe');
+        const titleEl = document.getElementById('playerVideoTitle');
+        const catEl = document.getElementById('playerCategoryBadge');
+        const folderBtn = document.getElementById('playerFolderJumpBtn');
+
+        const embedUrl = `https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&fs=1`;
+        if (iframe.src !== embedUrl) {
+          iframe.src = embedUrl;
+        }
+
+        titleEl.textContent = video.title;
+        catEl.textContent = video.category;
+
+        const folder = getFolderById(video.folderId);
+        if (folder) {
+          folderBtn.textContent = folder.title;
+          folderBtn.onclick = () => {
+            activeTab = 'Drama Box';
+            selectedFolderId = folder.id;
+            updateTabStyles();
+            renderMainView();
+          };
+        } else {
+          folderBtn.textContent = 'Single Release';
+          folderBtn.onclick = null;
+        }
+
+        updatePlayerSubscribeButton();
+        section.classList.remove('hidden');
+
+        // Show AD_SLOT_BOTTOM_SAFE safely above mobile back button when video plays
+        document.getElementById('adSlotBottomSafeWrapper').classList.remove('hidden');
+        updateAdSlotDom();
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function updatePlayerSubscribeButton() {
+        const btn = document.getElementById('playerSubscribeBtn');
+        const video = state.videos.find((v) => v.id === currentPlayingVideoId);
+        if (!video || !video.folderId) {
+          btn.classList.add('hidden');
+          return;
+        }
+        btn.classList.remove('hidden');
+        const subscribed = isFolderSubscribed(video.folderId);
+        if (subscribed) {
+          btn.textContent = 'Subscribed ✓';
+          btn.className = 'px-3.5 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs font-bold transition-colors';
+        } else {
+          btn.textContent = 'Subscribe';
+          btn.className = 'px-3.5 py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-black text-xs font-extrabold transition-colors';
+        }
+        btn.onclick = () => toggleFolderSubscription(video.folderId);
+      }
+
+      function playNextVideo() {
+        if (!state.videos.length) return;
+        const idx = state.videos.findIndex((v) => v.id === currentPlayingVideoId);
+        const nextIdx = idx === -1 ? 0 : (idx + 1) % state.videos.length;
+        playVideo(state.videos[nextIdx].id);
+      }
+
+      function closePlayer() {
+        const section = document.getElementById('stickyPlayerSection');
+        const iframe = document.getElementById('ytPlayerIframe');
+        iframe.src = '';
+        currentPlayingVideoId = null;
+        section.classList.add('hidden');
+
+        // Hide AD_SLOT_BOTTOM_SAFE when player is closed
+        document.getElementById('adSlotBottomSafeWrapper').classList.add('hidden');
+      }
+
+      function triggerNativeFullscreen() {
+        const container = document.getElementById('playerFrameContainer');
+        const iframe = document.getElementById('ytPlayerIframe');
+        const target = container.requestFullscreen ? container : iframe;
+        if (target.requestFullscreen) {
+          target.requestFullscreen().catch(() => {});
+        } else if (target.webkitRequestFullscreen) {
+          target.webkitRequestFullscreen();
+        }
+      }
+
+      // 30-SECOND AUTO-REMOVE & FRESH RELOAD FOR ALL 3 DISTINCT AD SLOTS
+      function renderTopAdCreative() {
+        const container = document.getElementById('adTopContainer');
+        const c = TOP_AD_POOL[adState.top.index % TOP_AD_POOL.length];
+        // Remove previous creative and mount fresh creative cleanly
+        container.innerHTML = `
+          <a
+            id="adTopLink"
+            href="${c.url}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ad-refresh-flash flex-1 min-w-0 flex items-center gap-2 py-1 group"
+          >
+            <span class="px-1.5 py-0.5 rounded bg-amber-400 text-black text-[9px] font-extrabold uppercase shrink-0">
+              Ad
+            </span>
+            <div class="min-w-0 flex-1">
+              <p id="adTopTitle" class="text-xs font-bold text-white truncate group-hover:text-amber-300 transition-colors">
+                ${c.title}
+              </p>
+            </div>
+            <span id="adTopCta" class="px-2 py-0.5 rounded bg-zinc-800 text-amber-300 text-[10px] font-bold shrink-0">
+              ${c.cta}
+            </span>
+          </a>
+        `;
+      }
+
+      function renderBottomSafeAdCreative() {
+        const container = document.getElementById('adBottomSafeContainer');
+        const c = BOTTOM_SAFE_AD_POOL[adState.bottomSafe.index % BOTTOM_SAFE_AD_POOL.length];
+        // Remove previous creative and mount fresh creative cleanly
+        container.innerHTML = `
+          <a
+            id="adBottomSafeLink"
+            href="${c.url}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ad-refresh-flash flex-1 min-w-0 flex items-center gap-2 py-1 group"
+          >
+            <span class="px-1.5 py-0.5 rounded bg-amber-400 text-black text-[9px] font-extrabold uppercase shrink-0">
+              Ad
+            </span>
+            <div class="min-w-0 flex-1">
+              <p id="adBottomSafeTitle" class="text-xs font-bold text-white truncate group-hover:text-amber-300">
+                ${c.title}
+              </p>
+            </div>
+            <span id="adBottomSafeCta" class="px-2 py-0.5 rounded bg-amber-400 text-black text-[10px] font-extrabold shrink-0">
+              ${c.cta}
+            </span>
+          </a>
+        `;
+      }
+
+      function renderFeedAdCreative(block, offsetIndex) {
+        const slotContainer = block.querySelector('.feed-ad-creative-mount');
+        if (!slotContainer) return;
+        const c = FEED_AD_POOL[(adState.feed.index + offsetIndex) % FEED_AD_POOL.length];
+        // Remove previous creative and mount fresh creative cleanly
+        slotContainer.innerHTML = `
+          <a href="${c.url}" target="_blank" rel="noopener noreferrer" class="ad-refresh-flash flex-1 min-w-0 flex items-center gap-3 group">
+            <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-red-600 to-amber-500 flex flex-col items-center justify-center text-white font-extrabold shrink-0">
+              <span class="text-[9px] uppercase">Ad</span>
+              <span class="text-xs">${c.badge}</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="px-1.5 py-0.2 rounded bg-amber-400 text-black text-[9px] font-extrabold uppercase">Sponsored</span>
+                <span class="text-[10px] text-zinc-400 truncate">${c.domain}</span>
+              </div>
+              <p class="text-xs sm:text-sm font-bold text-white line-clamp-1 group-hover:text-amber-300">${c.headline}</p>
+              <p class="text-[11px] text-zinc-400 line-clamp-1">${c.subtext}</p>
+            </div>
+          </a>
+        `;
+        const ctaLink = block.querySelector('.feed-ad-cta');
+        if (ctaLink) {
+          ctaLink.textContent = c.cta;
+          ctaLink.href = c.url;
+        }
+      }
+
+      function updateAdSlotDom(reloadedSlotKey) {
+        // 1. AD_SLOT_TOP
+        const topActive = document.getElementById('adSlotTopActive');
+        const topCooldown = document.getElementById('adSlotTopCooldown');
+        if (adState.top.cooldown > 0) {
+          topActive.classList.add('hidden');
+          topCooldown.classList.remove('hidden');
+          document.getElementById('adTopCooldownSec').textContent = `${adState.top.cooldown}s`;
+        } else {
+          topActive.classList.remove('hidden');
+          topCooldown.classList.add('hidden');
+          if (reloadedSlotKey === 'top' || reloadedSlotKey === 'all') {
+            renderTopAdCreative();
+          }
+          document.getElementById('adTopTimer').textContent = `${adState.top.remaining}s`;
+        }
+
+        // 2. AD_SLOT_FEED
+        document.querySelectorAll('.feed-ad-block').forEach((block, idx) => {
+          const activeBox = block.querySelector('.feed-ad-active');
+          const coolBox = block.querySelector('.feed-ad-cooldown');
+          if (adState.feed.cooldown > 0) {
+            activeBox.classList.add('hidden');
+            coolBox.classList.remove('hidden');
+            coolBox.querySelector('.feed-ad-cool-sec').textContent = `${adState.feed.cooldown}s`;
+          } else {
+            activeBox.classList.remove('hidden');
+            coolBox.classList.add('hidden');
+            if (reloadedSlotKey === 'feed' || reloadedSlotKey === 'all') {
+              renderFeedAdCreative(block, idx);
+            }
+            activeBox.querySelector('.feed-ad-timer').textContent = `${adState.feed.remaining}s`;
+          }
+        });
+
+        // 3. AD_SLOT_BOTTOM_SAFE (Active only when video player is open)
+        if (currentPlayingVideoId) {
+          const bottomActive = document.getElementById('adSlotBottomSafeActive');
+          const bottomCooldown = document.getElementById('adSlotBottomSafeCooldown');
+          if (adState.bottomSafe.cooldown > 0) {
+            bottomActive.classList.add('hidden');
+            bottomCooldown.classList.remove('hidden');
+            document.getElementById('adBottomSafeCooldownSec').textContent = `${adState.bottomSafe.cooldown}s`;
+          } else {
+            bottomActive.classList.remove('hidden');
+            bottomCooldown.classList.add('hidden');
+            if (reloadedSlotKey === 'bottomSafe' || reloadedSlotKey === 'all') {
+              renderBottomSafeAdCreative();
+            }
+            document.getElementById('adBottomSafeTimer').textContent = `${adState.bottomSafe.remaining}s`;
+          }
+        }
+      }
+
+      function startAdClock() {
+        setInterval(() => {
+          ['top', 'feed', 'bottomSafe'].forEach((key) => {
+            const slot = adState[key];
+            if (slot.cooldown > 0) {
+              slot.cooldown -= 1;
+              if (slot.cooldown <= 0) {
+                slot.cooldown = 0;
+                slot.remaining = 30;
+                slot.index += 1;
+                updateAdSlotDom(key);
+              } else {
+                updateAdSlotDom(null);
+              }
+            } else {
+              slot.remaining -= 1;
+              if (slot.remaining <= 0) {
+                // Remove old ad and load new ad every 30 seconds
+                slot.remaining = 30;
+                slot.index += 1;
+                updateAdSlotDom(key);
+              } else {
+                updateAdSlotDom(null);
+              }
+            }
+          });
+        }, 1000);
+      }
+
+      function buildFeedAdHtml(slotNumber) {
+        const c = FEED_AD_POOL[(adState.feed.index + slotNumber) % FEED_AD_POOL.length];
+        const isCool = adState.feed.cooldown > 0;
+        return `
+          <div class="feed-ad-block w-full bg-[#14141c] border-b border-zinc-800/90" data-feed-slot="${slotNumber}">
+            <!-- AD_NETWORK_SCRIPT_HERE (AD_SLOT_FEED_${slotNumber}: 300x250 / 320x100 In-Feed Banner) -->
+            <div class="feed-ad-active ${isCool ? 'hidden' : ''} w-full px-3 py-3 flex items-center justify-between gap-3">
+              <div class="feed-ad-creative-mount flex-1 min-w-0 flex items-center">
+                <a href="${c.url}" target="_blank" rel="noopener noreferrer" class="flex-1 min-w-0 flex items-center gap-3 group">
+                  <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-red-600 to-amber-500 flex flex-col items-center justify-center text-white font-extrabold shrink-0">
+                    <span class="text-[9px] uppercase">Ad</span>
+                    <span class="text-xs">${c.badge}</span>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                      <span class="px-1.5 py-0.2 rounded bg-amber-400 text-black text-[9px] font-extrabold uppercase">Sponsored</span>
+                      <span class="text-[10px] text-zinc-400 truncate">${c.domain}</span>
+                    </div>
+                    <p class="text-xs sm:text-sm font-bold text-white line-clamp-1 group-hover:text-amber-300">${c.headline}</p>
+                    <p class="text-[11px] text-zinc-400 line-clamp-1">${c.subtext}</p>
+                  </div>
+                </a>
+              </div>
+              <div class="flex flex-col items-end gap-1.5 shrink-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="feed-ad-timer text-[10px] font-semibold text-zinc-400 tabular-nums">${adState.feed.remaining}s</span>
+                  <button type="button" class="close-feed-ad-btn w-6 h-6 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold flex items-center justify-center" title="Hide ad for 60 seconds">&times;</button>
+                </div>
+                <a href="${c.url}" target="_blank" rel="noopener noreferrer" class="feed-ad-cta px-2.5 py-1 rounded-md bg-amber-400 hover:bg-amber-300 text-black text-[11px] font-extrabold">${c.cta}</a>
+              </div>
+            </div>
+
+            <div class="feed-ad-cooldown ${isCool ? '' : 'hidden'} w-full px-3 py-2 flex items-center justify-between text-[11px] text-zinc-500 bg-[#0d0d11]">
+              <span>Feed ad hidden — next banner in <strong class="feed-ad-cool-sec text-zinc-300">${adState.feed.cooldown}s</strong></span>
+              <button type="button" class="restore-feed-ad-btn text-amber-400 font-semibold hover:underline">Show Now</button>
+            </div>
+          </div>
+        `;
+      }
+
+      // FULL-BLEED YOUTUBE-STYLE VIDEO ITEM (Zero Outer Card / Zero Rounded Cover Box)
+      function buildFullBleedVideoHtml(video) {
+        const folder = getFolderById(video.folderId);
+        const subscribed = folder ? isFolderSubscribed(folder.id) : false;
+        const thumbUrl = `https://i.ytimg.com/vi/${video.youtubeId}/hqdefault.jpg`;
+
+        return `
+          <article class="w-full m-0 p-0 bg-[#0b0b0e] border-b border-zinc-800/80">
+            <!-- 100% Edge-to-Edge 16:9 Thumbnail -->
+            <div
+              data-play-video="${video.id}"
+              class="yt-aspect w-full m-0 p-0 rounded-none cursor-pointer group overflow-hidden bg-black"
+            >
+              <img
+                src="${thumbUrl}"
+                alt="${video.title}"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='https://placehold.co/640x360/121218/f4f4f5?text=FilmDrama+Box';"
+                class="w-full h-full object-cover rounded-none group-hover:scale-[1.01] transition-transform duration-200"
+              />
+              <div class="yt-overlay bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-center justify-center">
+                <span class="w-12 h-12 rounded-full bg-black/75 border border-white/25 text-white flex items-center justify-center shadow-lg group-hover:bg-red-600 group-hover:border-red-500 transition-colors">
+                  <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </span>
+              </div>
+              <span class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/85 text-white text-[11px] font-bold tabular-nums">
+                ${video.duration || 'HD'}
+              </span>
+            </div>
+
+            <!-- Edge-to-Edge Video Metadata Row -->
+            <div class="w-full px-3 py-2.5 flex items-start justify-between gap-2.5">
+              <div data-play-video="${video.id}" class="min-w-0 flex-1 cursor-pointer">
+                <h3 class="text-sm font-bold text-white leading-snug line-clamp-2 hover:text-amber-300 transition-colors">
+                  ${video.title}
+                </h3>
+                <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400">
+                  <span class="px-1.5 py-0.2 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 font-semibold">
+                    ${video.category}
+                  </span>
+                  ${folder ? `<span class="text-zinc-300 font-medium truncate max-w-[175px]">${folder.title}</span>` : ''}
+                  <span>•</span>
+                  <span>${video.views || 'Trending'}</span>
+                </div>
+              </div>
+
+              ${
+                folder
+                  ? `<button
+                      type="button"
+                      data-sub-folder="${folder.id}"
+                      class="px-3 py-1.5 rounded-full text-xs font-extrabold shrink-0 transition-colors ${
+                        subscribed
+                          ? 'bg-zinc-800 border border-zinc-700 text-zinc-200'
+                          : 'bg-amber-400 hover:bg-amber-300 text-black'
+                      }"
+                    >
+                      ${subscribed ? 'Subscribed' : 'Subscribe'}
+                    </button>`
+                  : ''
+              }
+            </div>
+          </article>
+        `;
+      }
+
+      // DRAMA BOX / FOLDERS VIEW
+      function buildFoldersViewHtml() {
+        const subFolders = state.folders.filter((f) => isFolderSubscribed(f.id));
+        const matchingFolders = state.folders.filter((f) => {
+          if (!searchQuery) return true;
+          return f.title.toLowerCase().includes(searchQuery) || f.category.toLowerCase().includes(searchQuery);
+        });
+
+        let html = '';
+
+        // Subscribed Inbox Strip
+        html += `
+          <div class="w-full px-3 py-3 bg-[#121218] border-b border-zinc-800">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-xs font-extrabold uppercase tracking-wider text-amber-400">My Subscribed Inbox (${subFolders.length})</h2>
+              <span class="text-[11px] text-zinc-400">Tap any series to open episodes</span>
+            </div>
+            ${
+              subFolders.length
+                ? `<div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                    ${subFolders
+                      .map((f) => {
+                        const count = state.videos.filter((v) => v.folderId === f.id).length;
+                        return `
+                          <button type="button" data-open-folder="${f.id}" class="px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-left shrink-0 max-w-[210px]">
+                            <p class="text-xs font-bold text-white truncate">${f.title}</p>
+                            <p class="text-[10px] text-amber-400 font-semibold mt-0.5">${count} Episode${count === 1 ? '' : 's'}</p>
+                          </button>
+                        `;
+                      })
+                      .join('')}
+                  </div>`
+                : `<p class="text-xs text-zinc-400">You have not subscribed to any Drama or Film folder yet. Tap Subscribe on any series below.</p>`
+            }
+          </div>
+        `;
+
+        if (!matchingFolders.length) {
+          html += `<div class="w-full px-4 py-12 text-center text-sm text-zinc-400">No folders match your search.</div>`;
+          return html;
+        }
+
+        html += matchingFolders
+          .map((folder, index) => {
+            const folderVideos = state.videos.filter((v) => v.folderId === folder.id);
+            const subscribed = isFolderSubscribed(folder.id);
+            const cover =
+              folder.thumbnail ||
+              (folderVideos[0] ? `https://i.ytimg.com/vi/${folderVideos[0].youtubeId}/hqdefault.jpg` : 'https://placehold.co/640x360/121218/f4f4f5?text=Series+Folder');
+
+            const rowHtml = `
+              <div class="w-full m-0 p-0 bg-[#0b0b0e] border-b border-zinc-800/80">
+                <div data-open-folder="${folder.id}" class="yt-aspect w-full m-0 p-0 rounded-none cursor-pointer relative overflow-hidden bg-black">
+                  <img
+                    src="${cover}"
+                    alt="${folder.title}"
+                    onerror="this.onerror=null;this.src='https://placehold.co/640x360/121218/f4f4f5?text=Series+Folder';"
+                    class="w-full h-full object-cover rounded-none"
+                  />
+                  <div class="yt-overlay bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-extrabold uppercase">
+                        ${folder.category} Folder
+                      </span>
+                      <span class="px-2 py-0.5 rounded bg-black/85 text-amber-300 text-xs font-extrabold">
+                        ${folderVideos.length} Video${folderVideos.length === 1 ? '' : 's'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="w-full px-3 py-2.5 flex items-center justify-between gap-2.5">
+                  <div data-open-folder="${folder.id}" class="min-w-0 flex-1 cursor-pointer">
+                    <h3 class="text-sm font-extrabold text-white truncate">${folder.title}</h3>
+                    <p class="text-xs text-zinc-400 mt-0.5">Tap to open playlist &amp; watch episodes</p>
+                  </div>
+                  <button
+                    type="button"
+                    data-sub-folder="${folder.id}"
+                    class="px-3.5 py-1.5 rounded-full text-xs font-extrabold shrink-0 ${
+                      subscribed
+                        ? 'bg-zinc-800 border border-zinc-700 text-zinc-200'
+                        : 'bg-amber-400 hover:bg-amber-300 text-black'
+                    }"
+                  >
+                    ${subscribed ? 'Subscribed' : 'Subscribe'}
+                  </button>
+                </div>
+              </div>
+            `;
+
+            if ((index + 1) % 2 === 0) {
+              return rowHtml + buildFeedAdHtml(index + 1);
+            }
+            return rowHtml;
+          })
+          .join('');
+
+        return html;
+      }
+
+      // RENDER MAIN VIEW
+      function renderMainView() {
+        const container = document.getElementById('feedContainer');
+        const folderHeader = document.getElementById('activeFolderHeader');
+
+        // 1. Inside a specific folder
+        if (selectedFolderId) {
+          const folder = getFolderById(selectedFolderId);
+          if (!folder) {
+            selectedFolderId = null;
+          } else {
+            const folderVideos = state.videos.filter((v) => v.folderId === folder.id);
+            folderHeader.classList.remove('hidden');
+            document.getElementById('activeFolderTitle').textContent = folder.title;
+            document.getElementById('activeFolderMeta').textContent = `${folder.category} • ${folderVideos.length} Video${folderVideos.length === 1 ? '' : 's'}`;
+
+            const subBtn = document.getElementById('activeFolderSubBtn');
+            const subscribed = isFolderSubscribed(folder.id);
+            subBtn.textContent = subscribed ? 'Subscribed ✓' : 'Subscribe';
+            subBtn.className = subscribed
+              ? 'px-3.5 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs font-bold shrink-0'
+              : 'px-3.5 py-1.5 rounded-full bg-amber-400 text-black text-xs font-extrabold shrink-0';
+            subBtn.onclick = () => toggleFolderSubscription(folder.id);
+
+            if (!folderVideos.length) {
+              container.innerHTML = `<div class="w-full px-4 py-12 text-center text-sm text-zinc-400">No episodes uploaded to this folder yet. Add videos from the Sohail Nangoor Admin Panel.</div>`;
+              return;
+            }
+
+            container.innerHTML = folderVideos
+              .map((v, idx) => buildFullBleedVideoHtml(v) + (idx === 0 ? buildFeedAdHtml(1) : ''))
+              .join('');
+            return;
+          }
+        }
+
+        folderHeader.classList.add('hidden');
+
+        // 2. Drama Box / Folders Tab
+        if (activeTab === 'Drama Box') {
+          container.innerHTML = buildFoldersViewHtml();
+          return;
+        }
+
+        // 3. Subscribed Tab
+        if (activeTab === 'Subscribed') {
+          const subVideos = state.videos.filter((v) => v.folderId && isFolderSubscribed(v.folderId));
+          if (!subVideos.length) {
+            container.innerHTML = `
+              <div class="w-full px-4 py-14 text-center space-y-3">
+                <p class="text-sm font-bold text-white">Your Subscribed Inbox is Empty</p>
+                <p class="text-xs text-zinc-400 max-w-xs mx-auto">Subscribe to any Drama Series or Film Folder to track all its latest episodes here.</p>
+                <button type="button" id="goToDramaBoxBtn" class="px-4 py-2 rounded-full bg-amber-400 text-black text-xs font-extrabold">
+                  Browse Drama Box Folders
+                </button>
+              </div>
+            `;
+            const jumpBtn = document.getElementById('goToDramaBoxBtn');
+            if (jumpBtn) {
+              jumpBtn.onclick = () => {
+                activeTab = 'Drama Box';
+                updateTabStyles();
+                renderMainView();
+              };
+            }
+            return;
+          }
+
+          container.innerHTML = subVideos
+            .map((v, idx) => buildFullBleedVideoHtml(v) + ((idx + 1) % 2 === 0 ? buildFeedAdHtml(idx + 1) : ''))
+            .join('');
+          return;
+        }
+
+        // 4. Home Feed (All / Film / Drama / Stories)
+        const filteredVideos = state.videos.filter((video) => {
+          const catMatch = activeTab === 'All' || video.category === activeTab;
+          if (!catMatch) return false;
+          if (!searchQuery) return true;
+          const folder = getFolderById(video.folderId);
+          return (
+            video.title.toLowerCase().includes(searchQuery) ||
+            video.category.toLowerCase().includes(searchQuery) ||
+            (folder && folder.title.toLowerCase().includes(searchQuery))
+          );
+        });
+
+        if (!filteredVideos.length) {
+          container.innerHTML = `<div class="w-full px-4 py-12 text-center text-sm text-zinc-400">No videos found matching your selection.</div>`;
+          return;
+        }
+
+        container.innerHTML = filteredVideos
+          .map((video, idx) => {
+            const card = buildFullBleedVideoHtml(video);
+            if (idx === 0 || (idx + 1) % 2 === 0) {
+              return card + buildFeedAdHtml(idx + 1);
+            }
+            return card;
+          })
+          .join('');
+      }
+
+      function updateTabStyles() {
+        document.querySelectorAll('.nav-tab').forEach((btn) => {
+          const tabName = btn.getAttribute('data-tab');
+          if (tabName === activeTab) {
+            btn.className = 'nav-tab px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-white text-black flex items-center gap-1.5';
+          } else {
+            btn.className = 'nav-tab px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-zinc-900 text-zinc-300 hover:bg-zinc-800 flex items-center gap-1.5';
+          }
+        });
+      }
+
+      // ADMIN STUDIO RENDERING
+      function renderAdminLists() {
+        const folderSelect = document.getElementById('videoFolderSelect');
+        folderSelect.innerHTML =
+          `<option value="">-- No Folder (Home Feed Only) --</option>` +
+          state.folders.map((f) => `<option value="${f.id}">${f.title} (${f.category})</option>`).join('');
+
+        const adminFolders = document.getElementById('adminFolderList');
+        adminFolders.innerHTML = state.folders.length
+          ? state.folders
+              .map(
+                (f) => `
+                <div class="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <p class="text-xs font-bold text-white truncate">${f.title}</p>
+                    <p class="text-[10px] text-zinc-400">${f.category}</p>
+                  </div>
+                  <button type="button" data-delete-folder="${f.id}" class="px-2.5 py-1 rounded bg-red-600/20 text-red-400 text-[11px] font-bold shrink-0">
+                    Delete
+                  </button>
+                </div>
+              `
+              )
+              .join('')
+          : `<p class="text-xs text-zinc-500">No folders created yet.</p>`;
+
+        const adminVideos = document.getElementById('adminVideoList');
+        adminVideos.innerHTML = state.videos.length
+          ? state.videos
+              .map((v) => {
+                const folder = getFolderById(v.folderId);
+                return `
+                  <div class="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="text-xs font-bold text-white truncate">${v.title}</p>
+                      <p class="text-[10px] text-zinc-400">${v.category}${folder ? ` • ${folder.title}` : ''}</p>
+                    </div>
+                    <button type="button" data-delete-video="${v.id}" class="px-2.5 py-1 rounded bg-red-600/20 text-red-400 text-[11px] font-bold shrink-0">
+                      Delete
+                    </button>
+                  </div>
+                `;
+              })
+              .join('')
+          : `<p class="text-xs text-zinc-500">No videos published yet.</p>`;
+      }
+
+      function openAdminStudio() {
+        renderAdminLists();
+        document.getElementById('adminModal').classList.remove('hidden');
+        document.getElementById('adminModal').classList.add('flex');
+      }
+
+      function closeAdminStudio() {
+        document.getElementById('adminModal').classList.add('hidden');
+        document.getElementById('adminModal').classList.remove('flex');
+      }
+
+      function openProfileModal() {
+        document.getElementById('profileNameInput').value = state.profileName === 'Guest' ? '' : state.profileName;
+        document.getElementById('profileModal').classList.remove('hidden');
+        document.getElementById('profileModal').classList.add('flex');
+      }
+
+      function closeProfileModal() {
+        document.getElementById('profileModal').classList.add('hidden');
+        document.getElementById('profileModal').classList.remove('flex');
+      }
+
+      // EVENT DELEGATION & BINDINGS
+      function bindEvents() {
+        document.getElementById('brandHomeBtn').addEventListener('click', () => {
+          activeTab = 'All';
+          selectedFolderId = null;
+          searchQuery = '';
+          document.getElementById('searchInput').value = '';
+          updateTabStyles();
+          renderMainView();
+        });
+
+        document.getElementById('toggleSearchBtn').addEventListener('click', () => {
+          const bar = document.getElementById('searchBarContainer');
+          bar.classList.toggle('hidden');
+          if (!bar.classList.contains('hidden')) {
+            document.getElementById('searchInput').focus();
+          }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+          searchQuery = e.target.value.trim().toLowerCase();
+          document.getElementById('clearSearchBtn').classList.toggle('hidden', !searchQuery);
+          renderMainView();
+        });
+
+        document.getElementById('clearSearchBtn').addEventListener('click', () => {
+          searchQuery = '';
+          document.getElementById('searchInput').value = '';
+          document.getElementById('clearSearchBtn').classList.add('hidden');
+          renderMainView();
+        });
+
+        document.querySelectorAll('.nav-tab').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            activeTab = btn.getAttribute('data-tab');
+            selectedFolderId = null;
+            updateTabStyles();
+            renderMainView();
+          });
+        });
+
+        document.getElementById('backFromFolderBtn').addEventListener('click', () => {
+          selectedFolderId = null;
+          renderMainView();
+        });
+
+        document.getElementById('closePlayerBtn').addEventListener('click', closePlayer);
+        document.getElementById('playerNextEpBtn').addEventListener('click', playNextVideo);
+        document.getElementById('playerFullscreenBtn').addEventListener('click', triggerNativeFullscreen);
+
+        // Top Ad Close / Restore
+        document.getElementById('closeAdTopBtn').addEventListener('click', () => {
+          adState.top.cooldown = 60;
+          updateAdSlotDom(null);
+        });
+        document.getElementById('restoreAdTopBtn').addEventListener('click', () => {
+          adState.top.cooldown = 0;
+          adState.top.remaining = 30;
+          adState.top.index += 1;
+          updateAdSlotDom('top');
+        });
+
+        // Bottom Safe-Zone Ad Close / Restore
+        document.getElementById('closeAdBottomSafeBtn').addEventListener('click', () => {
+          adState.bottomSafe.cooldown = 60;
+          updateAdSlotDom(null);
+        });
+        document.getElementById('restoreAdBottomSafeBtn').addEventListener('click', () => {
+          adState.bottomSafe.cooldown = 0;
+          adState.bottomSafe.remaining = 30;
+          adState.bottomSafe.index += 1;
+          updateAdSlotDom('bottomSafe');
+        });
+
+        // Main Content Delegated Events
+        document.getElementById('mainContentArea').addEventListener('click', (e) => {
+          const playEl = e.target.closest('[data-play-video]');
+          if (playEl) {
+            playVideo(playEl.getAttribute('data-play-video'));
+            return;
+          }
+
+          const folderEl = e.target.closest('[data-open-folder]');
+          if (folderEl) {
+            selectedFolderId = folderEl.getAttribute('data-open-folder');
+            renderMainView();
+            return;
+          }
+
+          const subEl = e.target.closest('[data-sub-folder]');
+          if (subEl) {
+            toggleFolderSubscription(subEl.getAttribute('data-sub-folder'));
+            return;
+          }
+
+          if (e.target.closest('.close-feed-ad-btn')) {
+            adState.feed.cooldown = 60;
+            updateAdSlotDom(null);
+            return;
+          }
+
+          if (e.target.closest('.restore-feed-ad-btn')) {
+            adState.feed.cooldown = 0;
+            adState.feed.remaining = 30;
+            adState.feed.index += 1;
+            updateAdSlotDom('feed');
+          }
+        });
+
+        // Header Admin & Profile Buttons
+        document.getElementById('headerAdminBtn').addEventListener('click', () => {
+          if (isAdminUnlocked()) {
+            openAdminStudio();
+          } else {
+            openProfileModal();
+          }
+        });
+
+        document.getElementById('headerProfileBtn').addEventListener('click', openProfileModal);
+        document.getElementById('closeProfileModalBtn').addEventListener('click', closeProfileModal);
+        document.getElementById('cancelProfileModalBtn').addEventListener('click', closeProfileModal);
+
+        document.getElementById('oneTapUnlockBtn').addEventListener('click', () => {
+          state.profileName = 'Sohail Nangoor 786';
+          saveState();
+          renderHeaderProfile();
+          closeProfileModal();
+          openAdminStudio();
+          showToast('Sohail Nangoor Admin Studio Unlocked');
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const entered = document.getElementById('profileNameInput').value.trim();
+          state.profileName = entered || 'Guest';
+          saveState();
+          renderHeaderProfile();
+          closeProfileModal();
+
+          if (isAdminUnlocked(state.profileName)) {
+            openAdminStudio();
+            showToast('Welcome Sohail Nangoor — Admin Studio Unlocked');
+          } else {
+            showToast(`Profile updated to ${state.profileName}`);
+          }
+        });
+
+        // Admin Modal Close & Tabs
+        document.getElementById('closeAdminModalBtn').addEventListener('click', closeAdminStudio);
+
+        document.querySelectorAll('.admin-tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-admin-tab');
+            document.querySelectorAll('.admin-tab-btn').forEach((b) => {
+              const active = b.getAttribute('data-admin-tab') === target;
+              b.className = active
+                ? 'admin-tab-btn py-2.5 text-center border-b-2 border-amber-400 text-amber-400 bg-zinc-900/60'
+                : 'admin-tab-btn py-2.5 text-center border-b-2 border-transparent text-zinc-400 hover:text-zinc-200';
+            });
+
+            document.getElementById('newFolderForm').classList.toggle('hidden', target !== 'folder');
+            document.getElementById('addVideoForm').classList.toggle('hidden', target !== 'video');
+            document.getElementById('manageBackupView').classList.toggle('hidden', target !== 'manage');
+            renderAdminLists();
+          });
+        });
+
+        // Create New Folder
+        document.getElementById('newFolderForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const title = document.getElementById('folderTitleInput').value.trim();
+          const category = document.getElementById('folderCategorySelect').value;
+          const thumbnail = document.getElementById('folderThumbInput').value.trim();
+          if (!title) return;
+
+          state.folders.unshift({
+            id: 'folder-' + Date.now(),
+            title,
+            category,
+            thumbnail
+          });
+          saveState();
+          document.getElementById('folderTitleInput').value = '';
+          document.getElementById('folderThumbInput').value = '';
+          renderAdminLists();
+          renderMainView();
+          showToast(`Folder "${title}" created`);
+        });
+
+        // Add Video to Feed & Folder
+        document.getElementById('addVideoForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const rawUrl = document.getElementById('videoUrlInput').value;
+          const youtubeId = extractYouTubeId(rawUrl);
+          if (!youtubeId) {
+            showToast('Please enter a valid YouTube URL or 11-character Video ID');
+            return;
+          }
+
+          const title = document.getElementById('videoTitleInput').value.trim();
+          const category = document.getElementById('videoCategorySelect').value;
+          const folderId = document.getElementById('videoFolderSelect').value;
+          const duration = document.getElementById('videoDurationInput').value.trim() || 'HD';
+
+          state.videos.unshift({
+            id: 'vid-' + Date.now(),
+            youtubeId,
+            title,
+            category,
+            folderId,
+            duration,
+            views: 'New Release',
+            uploadedAt: 'Just now'
+          });
+
+          saveState();
+          document.getElementById('videoUrlInput').value = '';
+          document.getElementById('videoTitleInput').value = '';
+          renderAdminLists();
+          renderMainView();
+          showToast('Video published to Home Feed & Folder');
+        });
+
+        // Manage & Backup Actions
+        document.getElementById('manageBackupView').addEventListener('click', (e) => {
+          const delFolderBtn = e.target.closest('[data-delete-folder]');
+          if (delFolderBtn) {
+            const fid = delFolderBtn.getAttribute('data-delete-folder');
+            state.folders = state.folders.filter((f) => f.id !== fid);
+            state.subscribedFolderIds = state.subscribedFolderIds.filter((id) => id !== fid);
+            saveState();
+            updateSubscribedBadge();
+            renderAdminLists();
+            renderMainView();
+            showToast('Folder removed');
+            return;
+          }
+
+          const delVideoBtn = e.target.closest('[data-delete-video]');
+          if (delVideoBtn) {
+            const vid = delVideoBtn.getAttribute('data-delete-video');
+            state.videos = state.videos.filter((v) => v.id !== vid);
+            saveState();
+            renderAdminLists();
+            renderMainView();
+            showToast('Video removed');
+          }
+        });
+
+        document.getElementById('exportJsonBtn').addEventListener('click', () => {
+          const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'filmdrama-box-backup.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('Backup JSON exported');
+        });
+
+        document.getElementById('importJsonInput').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            try {
+              const parsed = JSON.parse(ev.target.result);
+              if (Array.isArray(parsed.folders) && Array.isArray(parsed.videos)) {
+                state.folders = parsed.folders;
+                state.videos = parsed.videos;
+                state.subscribedFolderIds = Array.isArray(parsed.subscribedFolderIds) ? parsed.subscribedFolderIds : [];
+                saveState();
+                updateSubscribedBadge();
+                renderAdminLists();
+                renderMainView();
+                showToast('Backup restored successfully');
+              } else {
+                showToast('Invalid backup file structure');
+              }
+            } catch (err) {
+              showToast('Could not read JSON file');
+            }
+          };
+          reader.readAsText(file);
+        });
+
+        document.getElementById('resetDemoDataBtn').addEventListener('click', () => {
+          const currentProfile = state.profileName;
+          state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+          state.profileName = currentProfile;
+          saveState();
+          updateSubscribedBadge();
+          renderAdminLists();
+          renderMainView();
+          showToast('Default English catalog restored');
+        });
+      }
+
+      // Initialize App
+      renderHeaderProfile();
+      updateSubscribedBadge();
+      updateTabStyles();
+      renderMainView();
+      updateAdSlotDom('all');
+      bindEvents();
+      startAdClock();
+    })();
+  </script>
+</body>
+</html>
+```
